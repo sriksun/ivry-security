@@ -6,6 +6,7 @@
    * <a href="#Instance_Management_actions">Instance Management actions</a>
    * <a href="#Retention">Retention</a>
    * <a href="#Replication">Replication</a>
+   * <a href="#Acquisition">Acquisition</a>
    * <a href="#Cross_entity_validations">Cross entity validations</a>
    * <a href="#Updating_process_and_feed_definition">Updating process and feed definition</a>
    * <a href="#Handling_late_input_data">Handling late input data</a>
@@ -162,7 +163,7 @@ Parameters -start and -end are used to mention the date range within which you w
    
    * 4. *suspend*: -suspend is used to suspend a instance or instances  for the given process. This option pauses the parent workflow at the state, which it was in at the time of execution of this command. This command is similar to SUSPEND process command in functionality only difference being, SUSPEND process suspends all the instance whereas suspend instance suspend only that instance or instances in the range. 
 
-   * 5.	*resume*: -resume option is used to resume any instance that  is in suspended state.  (Note: due to a bug in oozie Ðresume option in some cases may not actually resume the suspended instance/ instances)
+   * 5.	*resume*: -resume option is used to resume any instance that  is in suspended state.  (Note: due to a bug in oozie ï¿½resume option in some cases may not actually resume the suspended instance/ instances)
    * 6. *kill*: -kill option can be used to kill an instance or multiple instances 
 
 
@@ -188,7 +189,7 @@ in the attribute spanning backwards in time. Any data beyond the limit (past/fut
 
 ---+++ Example:
  If retention period is 10 hours, and the policy kicks in at time 't', the data retained by system is essentially the
-one falling in between [t-10h,t]. Any data in the boundaries [-°,t-10h) and (t,°] is removed from the system.
+one falling in between [t-10h,t]. Any data in the boundaries [-ï¿½,t-10h) and (t,ï¿½] is removed from the system.
 
 The 'action' attribute can attain values of DELETE/ARCHIVE. Based upon the tag value, the data eligible for removal is either
 deleted/archived.
@@ -275,6 +276,79 @@ may have a different feed path.
 For reasons that are obvious, Ivory has an external validation that ensures that the user
 always specifies the feed retention limit to be more than the feed's allowed late arrival period.
 If this rule is violated by the user, the feed submission call itself throws back an error.
+
+
+---++ Acquisition
+
+Ivory supports data acquisition from a database. Introduces a new entity named
+Database. You could define a database with the jdbc uri and a driver. The
+connector must be dropped in the shared lib location specified in
+startup.properties.
+
+It uses Apache Sqoop to materialize data acquisition in a oozie workflow.
+
+* Note: This is a first cut implementation and does not take care of credential
+management.*
+
+Database entity definition:
+<verbatim>
+<database colo="west-coast" description="MySQL DB"
+          name="mysql-database"
+          type="mysql"
+          xmlns="uri:ivory:database:0.1">
+
+    <interfaces>
+        <interface type="readonly" endpoint="jdbc:mysql://localhost:3306/sakila"
+                   version="1.0"/>
+        <interface type="write" endpoint="jdbc:mysql://localhost:3306/sakila"
+                   version="1.0"/>
+    </interfaces>
+
+    <properties>
+        <property name="username" value="root" />
+        <property name="password" value="" />
+    </properties>
+
+    <driver>com.mysql.jdbc.Driver</driver>
+
+</database>
+</verbatim>
+
+Acquisition feed definition:
+<verbatim>
+<feed description="Customer table" name="customer-table" xmlns="uri:ivory:feed:0.1">
+    <partitions/>
+    <groups>bi</groups>
+
+    <frequency>hours(1)</frequency>
+
+    <clusters>
+        <cluster name="primary-cluster" type="source">
+            <database name="mysql-database">
+                <dbName>sakila</dbName>
+                <tableName>customer</tableName>
+                <properties>
+                    <property name="numMaps" value="1"/>
+                </properties>
+            </database>
+            <validity start="2013-02-02T00:00Z" end="2099-12-31T00:00Z"/>
+            <retention limit="days(7)" action="delete"/>
+        </cluster>
+    </clusters>
+
+    <locations>
+        <location type="data"
+                  path="/user/venkatesh/customer/${YEAR}-${MONTH}-${DAY}-${HOUR}"/>
+        <location type="stats" path="/none"/>
+        <location type="meta" path="/none"/>
+    </locations>
+
+    <ACL owner="venkatesh" group="users" permission="0755"/>
+
+    <schema location="/none" provider="none"/>
+    <properties/>
+</feed>
+</verbatim>
    
 
 ---++ Cross entity validations

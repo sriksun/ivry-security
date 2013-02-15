@@ -1,4 +1,4 @@
-/*
+<!-- 
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -14,23 +14,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-
-package org.apache.ivory;
-
-import org.apache.ivory.entity.v0.EntityType;
-
-public enum Tag {
-    DEFAULT(EntityType.PROCESS), RETENTION(EntityType.FEED),
-    REPLICATION(EntityType.FEED), DATABASE_ACQUISITION(EntityType.FEED);
-
-    private final EntityType entityType;
-
-    private Tag(EntityType entityType) {
-        this.entityType = entityType;
-    }
-
-    public EntityType getType() {
-        return entityType;
-    }
-}
+ * -->
+<coordinator-app name="#NAME#" frequency="#FREQUENCY#"
+	start="#START_TIME#" end="#END_TIME" timezone="#TIMEZONE#"
+	xmlns="uri:oozie:coordinator:0.3">
+	<controls>
+		<concurrency>1</concurrency>
+		<execution>FIFO</execution>
+	</controls>
+	<datasets>
+		<dataset name="output-dataset" frequency="#FEED_FREQ#"
+			initial-instance="#START_TIME#" timezone="#TIMEZONE#">
+			<uri-template>#FEED_PATH#</uri-template>
+		</dataset>
+	</datasets>
+	<output-events>
+		<data-out name="output" dataset="output-dataset">
+			<instance>${coord:current(0)}</instance>
+		</data-out>
+	</output-events>
+	<action>
+		<workflow>
+			<app-path>#WF_PATH#</app-path>
+			<configuration />
+		</workflow>
+	</action>
+</coordinator-app>

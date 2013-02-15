@@ -31,10 +31,7 @@ import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityGraph;
 import org.apache.ivory.entity.v0.EntityType;
-import org.apache.ivory.entity.v0.feed.Cluster;
-import org.apache.ivory.entity.v0.feed.ClusterType;
-import org.apache.ivory.entity.v0.feed.Feed;
-import org.apache.ivory.entity.v0.feed.LocationType;
+import org.apache.ivory.entity.v0.feed.*;
 import org.apache.ivory.entity.v0.process.Input;
 import org.apache.ivory.entity.v0.process.Output;
 import org.apache.ivory.entity.v0.process.Process;
@@ -63,6 +60,14 @@ public class FeedEntityParser extends EntityParser<Feed> {
             validateEntityExists(EntityType.CLUSTER, cluster.getName());
             validateClusterValidity(cluster.getValidity().getStart(), cluster.getValidity().getEnd(), cluster.getName());
             validateFeedCutOffPeriod(feed, cluster);
+
+            Database database = cluster.getDatabase();
+            if (database != null) {
+                validateEntityExists(EntityType.DATABASE, database.getName());
+                // todo: this applies only to acqusition but not to export
+                validateDatabaseIsNotInTargetCluster(cluster);
+                //todo: do I need to add more?
+            }
         }
 
         validateFeedPartitionExpression(feed);
@@ -85,6 +90,14 @@ public class FeedEntityParser extends EntityParser<Feed> {
             return;
 
         ensureValidityFor(feed, processes);
+    }
+
+    private void validateDatabaseIsNotInTargetCluster(Cluster cluster)
+            throws ValidationException {
+        if (cluster.getType() == ClusterType.TARGET) {
+            throw new ValidationException("Database as source does not apply " +
+                    "to a target cluster.");
+        }
     }
 
     private Set<Process> findProcesses(Set<Entity> referenced) {

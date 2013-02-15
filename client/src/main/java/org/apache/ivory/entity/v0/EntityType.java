@@ -28,6 +28,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.ivory.entity.v0.cluster.Cluster;
+import org.apache.ivory.entity.v0.database.Database;
 import org.apache.ivory.entity.v0.feed.Feed;
 import org.apache.ivory.entity.v0.process.Process;
 
@@ -37,7 +38,8 @@ import org.apache.ivory.entity.v0.process.Process;
 public enum EntityType {
     FEED(Feed.class, "/feed-0.1.xsd", "name"), 
     PROCESS(Process.class, "/process-0.1.xsd", "name"), 
-    CLUSTER(Cluster.class, "/cluster-0.1.xsd", "name");
+    CLUSTER(Cluster.class, "/cluster-0.1.xsd", "name"),
+    DATABASE(Database.class, "/database-0.1.xsd", "name");
 
     //Fail unmarshalling of whole xml if unmarshalling of any element fails
     private static class EventHandler implements ValidationEventHandler {
@@ -53,10 +55,14 @@ public enum EntityType {
     private JAXBContext jaxbContext;
     private Schema schema;
     private String[] immutableProperties;
+    private String schemaFile;
 
-    private EntityType(Class<? extends Entity> typeClass, String schemaFile, String... immutableProperties) {
+    private EntityType(Class<? extends Entity> typeClass, String schemaFile,
+                       String... immutableProperties) {
         clazz = typeClass;
         this.immutableProperties = immutableProperties;
+        this.schemaFile = schemaFile;
+
         try {
             jaxbContext = JAXBContext.newInstance(typeClass);
             synchronized(this) {
@@ -70,6 +76,10 @@ public enum EntityType {
 
     public Class<? extends Entity> getEntityClass() {
         return clazz;
+    }
+
+    public String getSchemaFile() {
+        return schemaFile;
     }
 
     public Marshaller getMarshaller() throws JAXBException {
@@ -86,7 +96,7 @@ public enum EntityType {
     }
     
     public boolean isSchedulable() {
-        return this != EntityType.CLUSTER;
+        return this != EntityType.CLUSTER || this != EntityType.DATABASE;
     }
     
     public String[] getImmutableProperties() {

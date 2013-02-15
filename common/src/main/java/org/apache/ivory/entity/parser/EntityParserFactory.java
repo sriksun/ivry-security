@@ -35,7 +35,7 @@ public final class EntityParserFactory {
 	 * unmarshalled easily by concrete classes based on the class type using
 	 * JAXB.
 	 * 
-	 * @param entityType
+	 * @param entityType type of entity
 	 * @return concrete parser based on entity type
 	 */
 	public static EntityParser getParser(final EntityType entityType) {
@@ -47,7 +47,9 @@ public final class EntityParserFactory {
 			return new FeedEntityParser();
 		case CLUSTER:
 			return new ClusterEntityParser();
-		default:
+        case DATABASE:
+            return new DatabaseEntityParser();
+        default:
 			throw new IllegalArgumentException("Unhandled entity type: " + entityType);
 		}
 	}

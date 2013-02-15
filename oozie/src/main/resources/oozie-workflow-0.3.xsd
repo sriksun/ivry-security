@@ -23,7 +23,7 @@
 
     <xs:simpleType name="IDENTIFIER">
         <xs:restriction base="xs:string">
-            <xs:pattern value="([a-zA-Z_]([\-_a-zA-Z0-9])*){1,39})"/>
+            <xs:pattern value="([a-zA-Z_]([\-_a-zA-Z0-9])*){1,39}"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -116,6 +116,7 @@
     <xs:element name="sub-workflow" type="workflow:SUB-WORKFLOW"/>
     <xs:element name="fs" type="workflow:FS"/>
     <xs:element name="java" type="workflow:JAVA"/>
+    <xs:element name="sqoop" type="workflow:SQOOP"/>
 
     <xs:complexType name="ACTION">
         <xs:sequence>
@@ -126,11 +127,12 @@
                 <xs:element name="sub-workflow" type="workflow:SUB-WORKFLOW" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="fs" type="workflow:FS" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="java" type="workflow:JAVA" minOccurs="1" maxOccurs="1"/>
-               <!-- <xs:any namespace="##other" minOccurs="1" maxOccurs="1"/>-->
+                <xs:element name="sqoop" type="workflow:SQOOP" minOccurs="1" maxOccurs="1"/>
+                <xs:any namespace="##other" minOccurs="1" maxOccurs="1"/>
             </xs:choice>
             <xs:element name="ok" type="workflow:ACTION_TRANSITION" minOccurs="1" maxOccurs="1"/>
             <xs:element name="error" type="workflow:ACTION_TRANSITION" minOccurs="1" maxOccurs="1"/>
-            <xs:any namespace="uri:oozie:sla:0.1" minOccurs="0" maxOccurs="1"/>
+            <!--<xs:any namespace="uri:oozie:sla:0.1" minOccurs="0" maxOccurs="1"/>-->
         </xs:sequence>
         <xs:attribute name="name" type="workflow:IDENTIFIER" use="required"/>
     </xs:complexType>
@@ -208,6 +210,22 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="SQOOP">
+        <xs:sequence>
+            <xs:element name="job-tracker" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="name-node" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="prepare" type="workflow:PREPARE" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="job-xml" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="configuration" type="workflow:CONFIGURATION" minOccurs="0" maxOccurs="1"/>
+            <xs:choice>
+                <xs:element name="command" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="arg" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:element name="file" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="archive" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="FLAG"/>
 
     <xs:complexType name="CONFIGURATION">
@@ -270,5 +288,4 @@
         <xs:attribute name="permissions" type="xs:string" use="required"/>
         <xs:attribute name="dir-files" type="xs:string"/>
     </xs:complexType>
-
 </xs:schema>

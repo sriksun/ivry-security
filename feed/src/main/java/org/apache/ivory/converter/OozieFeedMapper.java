@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.ivory.IvoryException;
 import org.apache.ivory.Tag;
 import org.apache.ivory.entity.ClusterHelper;
+import org.apache.ivory.entity.DatabaseHelper;
 import org.apache.ivory.entity.EntityUtil;
 import org.apache.ivory.entity.FeedHelper;
 import org.apache.ivory.entity.store.ConfigurationStore;
@@ -38,9 +39,7 @@ import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.Frequency.TimeUnit;
 import org.apache.ivory.entity.v0.SchemaHelper;
 import org.apache.ivory.entity.v0.cluster.Cluster;
-import org.apache.ivory.entity.v0.feed.ClusterType;
-import org.apache.ivory.entity.v0.feed.Feed;
-import org.apache.ivory.entity.v0.feed.LocationType;
+import org.apache.ivory.entity.v0.feed.*;
 import org.apache.ivory.entity.v0.feed.Property;
 import org.apache.ivory.expression.ExpressionHelper;
 import org.apache.ivory.messaging.EntityInstanceMessage.ARG;
@@ -62,6 +61,8 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
     private static final String REPLICATION_COORD_TEMPLATE = "/config/coordinator/replication-coordinator.xml";
     private static final String REPLICATION_WF_TEMPLATE = "/config/workflow/replication-workflow.xml";
 
+    private final OozieFeedDatabaseMapper feedDbMapper = new OozieFeedDatabaseMapper();
+
     public OozieFeedMapper(Feed feed) {
         super(feed);
     }
@@ -69,10 +70,18 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
     @Override
     protected List<COORDINATORAPP> getCoordinators(Cluster cluster, Path bundlePath) throws IvoryException {
         List<COORDINATORAPP> coords = new ArrayList<COORDINATORAPP>();
+
+        COORDINATORAPP databaseAcquisitionCoord =
+                feedDbMapper.getDatabaseAcquisitionCoordinator(cluster, bundlePath);
+        if (databaseAcquisitionCoord != null) {
+            coords.add(databaseAcquisitionCoord);
+        }
+
         COORDINATORAPP retentionCoord = getRetentionCoordinator(cluster, bundlePath);
         if (retentionCoord != null) {
             coords.add(retentionCoord);
         }
+
         List<COORDINATORAPP> replicationCoords = getReplicationCoordinators(cluster, bundlePath);
         coords.addAll(replicationCoords);
         return coords;
@@ -111,7 +120,7 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
         WORKFLOW retentionWorkflow = new WORKFLOW();
         try {
             //
-            WORKFLOWAPP retWfApp = createRetentionWorkflow(cluster);
+            WORKFLOWAPP retWfApp = createRetentionWorkflow();
             retWfApp.setName(wfName);
             marshal(cluster, retWfApp, wfPath);
             retentionWorkflow.setAppPath(getStoragePath(wfPath.toString()));
@@ -171,12 +180,7 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
             replicationCoord.setName(coordName);
             replicationCoord.setFrequency("${coord:" + feed.getFrequency().toString() + "}");
 
-            long frequency_ms = ExpressionHelper.get().
-                    evaluate(feed.getFrequency().toString(), Long.class);
-            long timeout_ms = frequency_ms * 6;
-            if (timeout_ms < THIRTY_MINUTES) timeout_ms = THIRTY_MINUTES;
-            replicationCoord.getControls().setTimeout(String.valueOf(timeout_ms / (1000 * 60)));
-            replicationCoord.getControls().setThrottle(String.valueOf(timeout_ms / frequency_ms * 2));
+            setControls(feed, replicationCoord);
 
             Date srcStartDate = FeedHelper.getCluster(feed, srcCluster.getName()).getValidity().getStart();
             Date srcEndDate = FeedHelper.getCluster(feed, srcCluster.getName()).getValidity().getEnd();
@@ -221,6 +225,16 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
         return replicationCoord;
     }
 
+    private void setControls(Feed feed, COORDINATORAPP coordinatorApp)
+            throws IvoryException {
+        long frequency_ms = ExpressionHelper.get().
+                evaluate(feed.getFrequency().toString(), Long.class);
+        long timeout_ms = frequency_ms * 6;
+        if (timeout_ms < THIRTY_MINUTES) timeout_ms = THIRTY_MINUTES;
+        coordinatorApp.getControls().setTimeout(String.valueOf(timeout_ms / (1000 * 60)));
+        coordinatorApp.getControls().setThrottle(String.valueOf(timeout_ms / frequency_ms * 2));
+    }
+
     private void setDatasetValues(SYNCDATASET dataset, Feed feed, Cluster cluster) {
         dataset.setInitialInstance(SchemaHelper.formatDateUTC(FeedHelper.getCluster(feed, cluster.getName()).getValidity().getStart()));
         dataset.setTimezone(feed.getTimezone().getID());
@@ -259,8 +273,8 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
         } catch (Exception e) {
             throw new IvoryException("Unable to create replication workflow", e);
         }
-        return replicationAction;
 
+        return replicationAction;
     }
 
     private void createReplicatonWorkflow(Cluster cluster, Path wfPath, String wfName) throws IvoryException {
@@ -269,7 +283,7 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
         marshal(cluster, repWFapp, wfPath);
     }
 
-    private WORKFLOWAPP createRetentionWorkflow(Cluster cluster) throws IOException, IvoryException {
+    private WORKFLOWAPP createRetentionWorkflow() throws IOException, IvoryException {
         return getWorkflowTemplate(RETENTION_WF_TEMPLATE);
     }
 
@@ -284,4 +298,111 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
         return props;
     }
 
+    private final class OozieFeedDatabaseMapper {
+
+        private static final String DATABASE_ACQUISITION_COORD_TEMPLATE =
+                "/config/coordinator/database-acquisition-coordinator.xml";
+        private static final String DATABASE_ACQUISITIONTION_WF_TEMPLATE =
+                "/config/workflow/database-acquisition-workflow.xml";
+
+        private COORDINATORAPP getDatabaseAcquisitionCoordinator(
+                Cluster cluster, Path bundlePath) throws IvoryException {
+            Feed feed = getEntity();
+            org.apache.ivory.entity.v0.feed.Cluster feedCluster =
+                    FeedHelper.getCluster(feed, cluster.getName());
+
+            if (feedCluster.getType() != ClusterType.TARGET &&
+                    feedCluster.getDatabase() == null) {
+                LOG.info("Feed Acquisition is not applicable as the database " +
+                        "for cluster " + cluster.getName() + " is not " +
+                        "defined");
+                return null;
+            }
+
+            COORDINATORAPP acquisitionCoord = getCoordinatorTemplate(DATABASE_ACQUISITION_COORD_TEMPLATE);
+            String coordName = EntityUtil.getWorkflowName(Tag.DATABASE_ACQUISITION, feed).toString();
+            acquisitionCoord.setName(coordName);
+            acquisitionCoord.setFrequency("${coord:" + feed.getFrequency().toString() + "}");
+            setControls(feed, acquisitionCoord);
+
+            acquisitionCoord.setStart(SchemaHelper.formatDateUTC(new Date()));
+            acquisitionCoord.setEnd(SchemaHelper.formatDateUTC(feedCluster.getValidity().getEnd()));
+            acquisitionCoord.setTimezone(feed.getTimezone().getID());
+
+            SYNCDATASET outputDataset = (SYNCDATASET) acquisitionCoord.getDatasets().getDatasetOrAsyncDataset().get(0);
+
+            outputDataset.setUriTemplate(getStoragePath(FeedHelper.getLocation(
+                    feed, LocationType.DATA, cluster.getName()).getPath()));
+            setDatasetValues(outputDataset, feed, cluster);
+
+            Path wfPath = getCoordPath(bundlePath, coordName);
+            acquisitionCoord.setAction(
+                    getDatabaseAcquisitionWorkflowAction(cluster, wfPath, coordName));
+            return acquisitionCoord;
+        }
+
+        private ACTION getDatabaseAcquisitionWorkflowAction(
+                Cluster cluster, Path wfPath, String wfName) throws IvoryException{
+            Feed feed = getEntity();
+            ACTION acquisitionAction = new ACTION();
+            WORKFLOW acquisitionWorkflow = new WORKFLOW();
+            try {
+                //
+                WORKFLOWAPP acquisitionWfApp =
+                        getWorkflowTemplate(DATABASE_ACQUISITIONTION_WF_TEMPLATE);
+                acquisitionWfApp.setName(wfName);
+                marshal(cluster, acquisitionWfApp, wfPath);
+                acquisitionWorkflow.setAppPath(getStoragePath(wfPath.toString()));
+
+                Map<String, String> props =
+                        createCoordDefaultConfiguration(cluster, wfPath, wfName);
+                Database database = FeedHelper.getCluster(feed,
+                        cluster.getName()).getDatabase();
+
+                addEntityProperties(props, database);
+                addFeedProperties(feed, props, database);
+
+                acquisitionWorkflow.setConfiguration(getCoordConfig(props));
+                acquisitionAction.setWorkflow(acquisitionWorkflow);
+                return acquisitionAction;
+            } catch (Exception e) {
+                throw new IvoryException("Unable to create parent/retention workflow", e);
+            }
+        }
+
+        // entity specific properties
+        private void addEntityProperties(Map<String, String> props,
+                                         Database database) throws IvoryException {
+            org.apache.ivory.entity.v0.database.Database databaseEntity =
+                    EntityUtil.getEntity(EntityType.DATABASE, database.getName());
+
+            props.put("databaseUrl", DatabaseHelper.getReadOnlyEndPoint(databaseEntity));
+
+            // todo: credential management
+            props.put("username",
+                    DatabaseHelper.getPropertyValue(databaseEntity, "username", "root"));
+            String password =
+                    DatabaseHelper.getPropertyValue(databaseEntity, "password", "");
+            if (! isEmptyOrNull(password)) {
+                props.put("password", password);
+            }
+        }
+
+        private boolean isEmptyOrNull(String value) {
+            return value == null || "".equals(value);
+        }
+
+        // feed specific properties
+        private void addFeedProperties(Feed feed, Map<String, String> props,
+                                       Database database) {
+            props.put("tableName", database.getTableName());
+            props.put("numMaps",
+                    DatabaseHelper.getPropertyValue(database, "numMaps", "1"));
+
+            props.put(ARG.feedNames.getPropName(), feed.getName());
+            props.put(ARG.feedInstancePaths.getPropName(), "IGNORE");
+
+            props.put("clusterTargetDir", "${coord:dataOut('output')}");
+        }
+    }
 }
