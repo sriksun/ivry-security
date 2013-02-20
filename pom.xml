@@ -75,6 +75,7 @@
         <module>rerun</module>
         <module>prism</module>
         <module>webapp</module>
+        <module>ivory-dashboard</module>
     </modules>
 
     <scm>
@@ -119,7 +120,7 @@
             <name>JBoss repository</name>
             <url>https://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
-    </repositories>
+`    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -253,7 +254,7 @@
             <dependency>
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
-                <version>2.1</version>
+                <version>2.6</version>
             </dependency>
 
             <dependency>
@@ -403,6 +404,12 @@
                 <groupId>org.apache.hadoop.inmobi.tools</groupId>
                 <artifactId>hadoop-distcp</artifactId>
                 <version>${hadoop-distcp.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-core</artifactId>
+                <version>1.9</version>
             </dependency>
 
             <dependency>
