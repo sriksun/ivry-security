@@ -311,7 +311,7 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
             org.apache.ivory.entity.v0.feed.Cluster feedCluster =
                     FeedHelper.getCluster(feed, cluster.getName());
 
-            if (feedCluster.getType() != ClusterType.TARGET &&
+            if (feedCluster.getType() != ClusterType.TARGET ||
                     feedCluster.getDatabase() == null) {
                 LOG.info("Feed Acquisition is not applicable as the database " +
                         "for cluster " + cluster.getName() + " is not " +

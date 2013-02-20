@@ -96,7 +96,7 @@ public enum EntityType {
     }
     
     public boolean isSchedulable() {
-        return this != EntityType.CLUSTER || this != EntityType.DATABASE;
+        return this != EntityType.CLUSTER && this != EntityType.DATABASE;
     }
     
     public String[] getImmutableProperties() {
