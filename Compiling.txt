@@ -1,0 +1,98 @@
+Compiling:
+
+1. Add custom DistCp
+Patch: https://issues.apache.org/jira/browse/MAPREDUCE-5014
+
+mvn install:install-file -DgroupId=org.apache.hadoop.inmobi.tools -DartifactId=hadoop-distcp -Dversion=0.3 -Dpackaging=jar -DgeneratePom=true -Dfile=extlib/hadoop-distcp-0.3.jar
+
+Why:
+This is a simple change required in DistCp to change the visibility of
+a method. This was needed to copy the side files that indicate notion of
+completion in the last (_SUVVESS, _DONE, etc.)
+
+
+2. Add custom Oozie
+Patch: OOZIE-674
+
+mvn install:install-file -DgroupId=org.apache.oozie -DartifactId=oozie-client -Dversion=3.3.0 -Dpackaging=jar -DgeneratePom=true -Dfile=extlib/oozie-client-3.2.2.jar
+
+Why:
+One additional patch - OOZIE-674 that adds additional EL and config related
+changes to the same.
+
+
+3. Build Ivory
+
+mvn -DskipTests clean package -P all
+
+
+4. Running tests
+E2E tests require starting a local Hadoop and Oozie instances
+start local hadoop cluster (NN on 8020, JT on 8021)
+start local oozie as oozie on 11000
+
+mvn -DIVORY_LOG_DIR=/tmp test
+
+
+Configuration:
+
+Oozie:
+
+Copy the contents of extlib/oozie-site.xml into $OOZIE_HOME/conf/oozie-site.xml
+at the end.
+
+Ivory:
+
+log4j.properties
+Change the default log dir /var/log/ivory dir to something writable by the app.
+
+Startup.properties
+Change the dir in the following properties:
+
+debug.config.store.uri=${user.dir}/target/store
+debug.config.oozie.conf.uri=${user.dir}/target/oozie
+debug.system.lib.location=${user.dir}/webapp/target/ivory-webapp-0.2-SNAPSHOT/WEB-INF/lib
+debug.broker.url=vm://localhost
+debug.retry.recorder.path=${user.dir}/target/retry
+
+*.retry.recorder.path=/var/log/ivory/retry
+
+
+
+Running Ivory:
+
+Server:
+
+Set the following env:
+
+export IVORY_HOME=~/dev/data-workspace/ivory-incubating/Ivory
+export IVORY_DEPLOY_HOME=~/dev/data-workspace/ivory-incubating/deploy
+export IVORY_CONF_DIR=$IVORY_DEPLOY_HOME/data/conf
+export IVORY_SHARED_LIB=IVORY_HOME/webapp/target/ivory-webapp-0.2-SNAPSHOT/WEB-INF/lib/
+export IVORY_LOG_DIR=$IVORY_DEPLOY_HOME/data/logs
+
+$IVORY_HOME/bin/ivory-server.sh
+
+Client:
+
+$IVORY_HOME/client/bin/ivory help
+
+
+Running Demo:
+
+There is a demo folder under $IVORY_HOME
+
+Clusters:
+
+primary-cluster.xml  (change the end points for all interfaces)
+secondary-cluster.xml
+
+Feed:
+
+replicating-feed.xml
+Copy test data into a folder in primary cluster. Change the paths to reflect
+the data on HDFS.
+
+Verification:
+Verify in oozie console for a replication workflow on target cluster
+and retention workflows on both source and target clusters.
