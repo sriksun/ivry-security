@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Hourly customer table dump.
+  -->
+<feed description="Film table" name="film-table"
+      xmlns="uri:ivory:feed:0.1">
+    <partitions/>
+
+    <groups>bi</groups>
+
+    <frequency>hours(1)</frequency>
+
+    <clusters>
+        <cluster name="primary-cluster" type="source">
+            <database name="mysql-database">
+                <dbName>sakila</dbName>
+                <tableName>film</tableName>
+                <properties>
+                    <property name="numMaps" value="1"/>
+                </properties>
+            </database>
+            <validity start="2013-02-02T00:00Z" end="2099-12-31T00:00Z"/>
+            <retention limit="days(1)" action="delete"/>
+        </cluster>
+        <cluster name="secondary-cluster" type="target">
+            <validity start="2013-02-02T00:00Z" end="2099-12-31T00:00Z"/>
+            <retention limit="days(4)" action="delete"/>
+        </cluster>
+    </clusters>
+
+    <locations>
+        <location type="data"
+                  path="/user/seetharam/film/${YEAR}-${MONTH}-${DAY}-${HOUR}"/>
+        <location type="stats" path="/none"/>
+        <location type="meta" path="/none"/>
+    </locations>
+
+    <ACL owner="seetharam" group="users" permission="0755"/>
+
+    <schema location="/none" provider="none"/>
+
+    <properties/>
+</feed>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+    Secondary cluster configuration
+  -->
+
+<cluster colo="east-coast" description="Secondary Cluster"
+         name="secondary-cluster"
+         xmlns="uri:ivory:cluster:0.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <interfaces>
+        <interface type="readonly" endpoint="hftp://localhost:20070"
+                   version="1.1.1" />
+
+        <interface type="write" endpoint="hdfs://localhost:20020"
+                   version="1.1.1" />
+
+        <interface type="execute" endpoint="localhost:20300"
+                   version="1.1.1" />
+
+        <interface type="workflow" endpoint="http://localhost:12000/oozie/"
+                   version="3.3.0" />
+
+        <interface type="messaging" endpoint="tcp://localhost:61616?daemon=true"
+                   version="5.1.6" />
+    </interfaces>
+
+    <locations>
+        <location name="staging" path="/home/seetharam/ivory/staging" />
+        <location name="temp" path="/tmp" />
+        <location name="working" path="/home/seetharam/ivory/working" />
+    </locations>
+
+    <properties/>
+
+</cluster>

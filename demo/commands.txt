@@ -1,0 +1,42 @@
+bin/ivory entity -type cluster -list -url http://localhost:15000
+bin/ivory entity -type feed -list -url http://localhost:15000
+bin/ivory entity -type process -list -url http://localhost:15000
+
+bin/ivory entity -url http://localhost:15000 -submit -type cluster -file ../demo/primary-cluster.xml
+bin/ivory entity -url http://localhost:15000 -submit -type cluster -file ../demo/secondary-cluster.xml
+
+bin/ivory entity -delete -type cluster -name herd-primary-cluster -url http://localhost:15000
+bin/ivory entity -delete -type cluster -name herd-bcp-cluster -url http://localhost:15000
+
+bin/ivory entity -submit -type feed -file ../entity/herd-bcp-feed.xml -url http://localhost:15000
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type cluster -file ../demo/primary-cluster.xml
+bin/ivory entity -url http://localhost:15000 -submit -type cluster -file ../demo/secondary-cluster.xml
+
+bin/ivory entity -type cluster -list -url http://localhost:15000
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type feed -file ../demo/simple-feed.xml
+bin/ivory entity -type feed -url http://localhost:15000 -name simple-feed -schedule
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type feed -file ../demo/replicating-feed.xml
+bin/ivory entity -type feed -url http://localhost:15000 -name replicating-feed -schedule
+
+bin/ivory entity -type feed -list -url http://localhost:15000
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type process -file ../demo/simple-process.xml
+in/ivory entity -type process -url http://localhost:15000 -name customer-daily -schedule
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type database -file ../demo/mysql-database.xml
+
+bin/ivory entity -url http://localhost:15000 -submit -type feed -file ../demo/customer-ingest-feed.xml
+bin/ivory entity -type feed -url http://localhost:15000 -name customer-table -schedule
+bin/ivory instance -url http://localhost:15000 -type feed -name customer-table -status -start 2013-02-02T00:00Z
+
+
+bin/ivory entity -url http://localhost:15000 -submit -type feed -file ../demo/films-ingest-feed.xml
+bin/ivory entity -type feed -url http://localhost:15000 -name film-table -schedule

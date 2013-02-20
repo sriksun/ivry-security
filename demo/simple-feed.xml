@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    A feed representing Hourly customer table dump with retention.
+  -->
+<feed description="simple feed" name="simple-feed"
+      xmlns="uri:ivory:feed:0.1">
+    <partitions/>
+
+    <groups>bi</groups>
+
+    <frequency>hours(1)</frequency>
+
+    <clusters>
+        <cluster name="primary-cluster" type="source">
+            <validity start="2013-02-02T00:00Z" end="2099-12-31T00:00Z"/>
+            <retention limit="days(2)" action="delete"/>
+        </cluster>
+    </clusters>
+
+    <locations>
+        <location type="data"
+                  path="/user/seetharam/customer/${YEAR}-${MONTH}-${DAY}-${HOUR}"/>
+        <location type="stats" path="/none"/>
+        <location type="meta" path="/none"/>
+    </locations>
+
+    <ACL owner="seetharam" group="users" permission="0755"/>
+
+    <schema location="/none" provider="none"/>
+
+    <properties/>
+</feed>

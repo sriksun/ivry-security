@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+    Ivory DB Datasource configuration
+  -->
+
+<database colo="west-coast" description="MySQL DB"
+          name="mysql-database"
+          type="mysql"
+          xmlns="uri:ivory:database:0.1">
+
+    <interfaces>
+        <interface type="readonly" endpoint="jdbc:mysql://localhost:3306/sakila"
+                   version="1.0"/>
+        <interface type="write" endpoint="jdbc:mysql://localhost:3306/sakila"
+                   version="1.0"/>
+    </interfaces>
+
+    <properties>
+        <property name="username" value="root" />
+        <property name="password" value="" />
+    </properties>
+
+    <driver>com.mysql.jdbc.Driver</driver>
+
+</database>
