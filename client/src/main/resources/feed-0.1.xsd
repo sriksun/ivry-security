@@ -145,6 +145,7 @@
             <xs:element type="properties" name="properties" minOccurs="0" />
         </xs:sequence>
         <xs:attribute type="IDENTIFIER" name="name" use="required" />
+        <xs:attribute type="cluster-type" name="type" use="optional" />
     </xs:complexType>
     <xs:complexType name="partitions">
         <xs:annotation>
