@@ -75,7 +75,6 @@
         <module>rerun</module>
         <module>prism</module>
         <module>webapp</module>
-        <module>ivory-dashboard</module>
     </modules>
 
     <scm>
