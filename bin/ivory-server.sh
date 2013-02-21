@@ -23,5 +23,6 @@ echo $CLASSPATH
 echo #########################################
 echo           Starting Ivory Server ...
 echo #########################################
-$JAVA_HOME/bin/java -DIVORY_LOG_DIR=$IVORY_DEPLOY_HOME/data/logs -Dconfig.location=$IVORY_DEPLOY_HOME/conf -Dlog4j.debug -Dlog4j.configuration=file:$IVORY_DEPLOY_HOME/conf/log4j.xml -cp $CLASSPATH org.apache.ivory.Main $@
+$JAVA_HOME/bin/java -DIVORY_LOG_DIR=$IVORY_DEPLOY_HOME/data/logs -Dconfig.location=$IVORY_DEPLOY_HOME/conf -Dlog4j.debug -Dlog4j.configuration=file:$IVORY_DEPLOY_HOME/conf/log4j.xml -cp $CLASSPATH org.apache.ivory.Main $IVORY_HOME/webapp/target/ivory-webapp-0.2-SNAPSHOT $IVORY_DEPLOY_HOME/data $@
+# $JAVA_HOME/bin/java -DIVORY_LOG_DIR=$IVORY_DEPLOY_HOME/data/logs -Dconfig.location=$IVORY_DEPLOY_HOME/conf -Dlog4j.debug -Dlog4j.configuration=file:$IVORY_DEPLOY_HOME/conf/log4j.xml -cp $CLASSPATH org.apache.ivory.Main $IVORY_HOME/webapp/target/ivory-webapp-0.2-SNAPSHOT target $@
 CLASSPATH=$SAVE_CP

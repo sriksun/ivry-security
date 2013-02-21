@@ -13,7 +13,7 @@
     <clusters>
         <cluster name="primary-cluster" type="source">
             <validity start="2013-02-02T00:00Z" end="2099-12-31T00:00Z"/>
-            <retention limit="days(2)" action="delete"/>
+            <retention limit="months(9999)" action="delete"/>
         </cluster>
     </clusters>
 

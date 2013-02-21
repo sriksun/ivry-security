@@ -25,14 +25,20 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        EmbeddedServer server = new EmbeddedServer(15000,
-                "webapp/target/ivory-webapp-0.2-SNAPSHOT");
+        String path = "webapp/target/ivory-webapp-0.2-SNAPSHOT";
+        String dataDir = "target/";
+        if (args != null && args.length == 2) {
+            path = args[0];
+            dataDir = args[1];
+        }
+
+        EmbeddedServer server = new EmbeddedServer(15000, path);
         server.start();
-        
+
         BrokerService broker = new BrokerService();
         broker.setUseJmx(false);
-		broker.setDataDirectory("target/");
-		broker.addConnector("vm://localhost");
+        broker.setDataDirectory(dataDir);
+        broker.addConnector("tcp://localhost:61616");
         broker.start();
     }
 }

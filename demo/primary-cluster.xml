@@ -21,7 +21,12 @@
                    version="3.3.0" />
 
         <interface type="messaging" endpoint="tcp://localhost:61616?daemon=true"
+                   version="5.4.3" />
+<!--
+        <interface type="messaging"
+                   endpoint="vm://localhost?broker.useJmx=false&amp;broker.persistent=false"
                    version="5.1.6" />
+-->
     </interfaces>
 
     <locations>

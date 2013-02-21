@@ -21,13 +21,18 @@
                    version="3.3.0" />
 
         <interface type="messaging" endpoint="tcp://localhost:61616?daemon=true"
+                   version="5.4.3" />
+<!--
+        <interface type="messaging"
+                   endpoint="vm://localhost?broker.useJmx=false&amp;broker.persistent=false"
                    version="5.1.6" />
+-->
     </interfaces>
 
     <locations>
-        <location name="staging" path="/home/seetharam/ivory/staging" />
+        <location name="staging" path="/user/seetharam/ivory/staging" />
         <location name="temp" path="/tmp" />
-        <location name="working" path="/home/seetharam/ivory/working" />
+        <location name="working" path="/user/seetharam/ivory/working" />
     </locations>
 
     <properties/>

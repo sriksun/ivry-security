@@ -3,9 +3,9 @@
 	<interfaces>
 		<interface type="readonly" endpoint="hftp://localhost:10010"
 			version="0.20.2" />
-		<interface type="write" endpoint="hdfs://localhost:10020"
+		<interface type="write" endpoint="hdfs://localhost:54310"
 			version="0.20.2" />
-		<interface type="execute" endpoint="localhost:10300" version="0.20.2"/>
+		<interface type="execute" endpoint="localhost:54311" version="0.20.2"/>
         <interface type="workflow" endpoint="http://localhost:11000/oozie/"
 			version="3.1" />
 		<interface type="messaging" endpoint="tcp://localhost:61616?daemon=true"
