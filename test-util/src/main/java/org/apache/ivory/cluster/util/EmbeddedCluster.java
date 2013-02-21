@@ -147,6 +147,10 @@ public class EmbeddedCluster {
         location.setPath("/workflow/staging");
         Locations locs = new Locations();
         locs.getLocations().add(location);
+        location = new Location();
+        location.setName("working");
+        location.setPath("/workflow/work");
+        locs.getLocations().add(location);
         clusterEntity.setLocations(locs);
     }
 

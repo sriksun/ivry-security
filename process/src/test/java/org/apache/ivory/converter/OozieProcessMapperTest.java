@@ -73,10 +73,8 @@ public class OozieProcessMapperTest extends AbstractTestBase{
         Configuration conf = new Configuration();
         new MiniDFSCluster(conf , 1, true, null);
         hdfsUrl = conf.get("fs.default.name");
-        new File("target/dummy").mkdir();
-        StartupProperties.get().setProperty("system.lib.location", "target/dummy");
     }
-    
+
     @BeforeMethod
     public void setUp() throws Exception {
         super.setup();
@@ -247,6 +245,6 @@ public class OozieProcessMapperTest extends AbstractTestBase{
     
     @AfterClass
     public void cleanup() throws Exception{
-    		super.cleanup();
+        super.cleanup();
     }
 }
