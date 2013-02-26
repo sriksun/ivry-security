@@ -20,6 +20,7 @@ package org.apache.ivory;
 
 import org.apache.activemq.broker.BrokerService;
 import org.apache.ivory.util.EmbeddedServer;
+import org.apache.ivory.util.StartupProperties;
 
 public class Main {
 
@@ -38,7 +39,8 @@ public class Main {
         BrokerService broker = new BrokerService();
         broker.setUseJmx(false);
         broker.setDataDirectory(dataDir);
-        broker.addConnector("tcp://localhost:61616");
+        broker.addConnector(StartupProperties.get().getProperty("broker.url",
+                "tcp://localhost:61616"));
         broker.start();
     }
 }

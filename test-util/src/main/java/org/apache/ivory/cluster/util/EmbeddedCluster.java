@@ -86,10 +86,12 @@ public class EmbeddedCluster {
         }
         String user = System.getProperty("user.name");
         cluster.conf.set("hadoop.log.dir", "/tmp");
-        cluster.conf.set("hadoop.proxyuser.oozie.groups", "*");
+        cluster.conf.set("hadoop.proxyuser.oozie.groups", "staff");
         cluster.conf.set("hadoop.proxyuser.oozie.hosts", "127.0.0.1");
+/*
         cluster.conf.set("hadoop.proxyuser.seetharam.groups", "*");
         cluster.conf.set("hadoop.proxyuser.seetharam.hosts", "127.0.0.1");
+*/
         cluster.conf.set("hadoop.proxyuser.hdfs.groups", "*");
         cluster.conf.set("hadoop.proxyuser.hdfs.hosts", "127.0.0.1");
         cluster.conf.set("mapreduce.jobtracker.kerberos.principal", "");

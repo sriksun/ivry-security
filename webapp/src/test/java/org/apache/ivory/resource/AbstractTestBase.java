@@ -113,7 +113,7 @@ public class AbstractTestBase {
     }
 
     protected void waitForWorkflowStart(String entityName) throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 25; i++) {
             List<WorkflowJob> jobs = getRunningJobs(entityName);
             if (jobs != null && !jobs.isEmpty())
                 return;
@@ -190,7 +190,7 @@ public class AbstractTestBase {
         this.service = client.resource(UriBuilder.fromUri(BASE_URL).build());
         this.server.start();
 
-        if (System.getProperty("ivory.test.hadoop.embedded", "true").equals("true")) {
+        if (System.getProperty("ivory.test.hadoop.embedded", "false").equals("true")) {
             CLUSTER_FILE_TEMPLATE = "target/cluster-template.xml";
             this.cluster = EmbeddedCluster.newCluster("##cluster##", true);
             Cluster clusterEntity = this.cluster.getCluster();

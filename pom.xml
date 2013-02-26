@@ -274,17 +274,10 @@
                 <version>1.9</version>
             </dependency>
 
-
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>1.8.3</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
             </dependency>
 
             <dependency>
@@ -532,17 +525,8 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
-    </dependencies>
 
     <build>
         <directory>target</directory>
