@@ -311,11 +311,11 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
             org.apache.ivory.entity.v0.feed.Cluster feedCluster =
                     FeedHelper.getCluster(feed, cluster.getName());
 
-            if (feedCluster.getType() != ClusterType.TARGET ||
-                    feedCluster.getDatabase() == null) {
-                LOG.info("Feed Acquisition is not applicable as the database " +
-                        "for cluster " + cluster.getName() + " is not " +
-                        "defined");
+            if (feedCluster.getDatabase() == null
+                    || feedCluster.getType() == ClusterType.TARGET) {
+                LOG.info("Feed Acquisition is not applicable as the database "
+                        + "for cluster " + cluster.getName() + " is not "
+                        + "defined or is defined in the target cluster.");
                 return null;
             }
 
@@ -329,20 +329,22 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
             acquisitionCoord.setEnd(SchemaHelper.formatDateUTC(feedCluster.getValidity().getEnd()));
             acquisitionCoord.setTimezone(feed.getTimezone().getID());
 
-            SYNCDATASET outputDataset = (SYNCDATASET) acquisitionCoord.getDatasets().getDatasetOrAsyncDataset().get(0);
+            SYNCDATASET outputDataset = (SYNCDATASET)
+                    acquisitionCoord.getDatasets().getDatasetOrAsyncDataset().get(0);
 
             outputDataset.setUriTemplate(getStoragePath(FeedHelper.getLocation(
                     feed, LocationType.DATA, cluster.getName()).getPath()));
             setDatasetValues(outputDataset, feed, cluster);
 
             Path wfPath = getCoordPath(bundlePath, coordName);
-            acquisitionCoord.setAction(
-                    getDatabaseAcquisitionWorkflowAction(cluster, wfPath, coordName));
+            acquisitionCoord.setAction(getDatabaseAcquisitionWorkflowAction(
+                    cluster, feedCluster.getDatabase(), wfPath, coordName));
             return acquisitionCoord;
         }
 
         private ACTION getDatabaseAcquisitionWorkflowAction(
-                Cluster cluster, Path wfPath, String wfName) throws IvoryException{
+                Cluster cluster, Database database, Path wfPath, String wfName)
+                throws IvoryException{
             Feed feed = getEntity();
             ACTION acquisitionAction = new ACTION();
             WORKFLOW acquisitionWorkflow = new WORKFLOW();
@@ -356,8 +358,6 @@ public class OozieFeedMapper extends AbstractOozieEntityMapper<Feed> {
 
                 Map<String, String> props =
                         createCoordDefaultConfiguration(cluster, wfPath, wfName);
-                Database database = FeedHelper.getCluster(feed,
-                        cluster.getName()).getDatabase();
 
                 addEntityProperties(props, database);
                 addFeedProperties(feed, props, database);
