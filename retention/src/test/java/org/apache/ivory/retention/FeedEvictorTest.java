@@ -22,8 +22,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.ivory.IvoryException;
 import org.apache.ivory.Pair;
 import org.apache.ivory.cluster.util.EmbeddedCluster;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -77,7 +79,7 @@ public class FeedEvictorTest {
 	public void testEviction2() throws Exception {
 		try {
 			Configuration conf = cluster.getConf();
-			FileSystem fs = FileSystem.get(conf);
+			FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 			fs.delete(new Path("/"), true);
 			stream.clear();
 
@@ -120,9 +122,10 @@ public class FeedEvictorTest {
 		return newBuffer.toString();
 	}
 
-	private String readLogFile(Path logFile) throws IOException {
+	private String readLogFile(Path logFile)
+            throws IOException, IvoryException {
 		Configuration conf = cluster.getConf();
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 		ByteArrayOutputStream writer = new ByteArrayOutputStream();
 		InputStream date = fs.open(logFile);
 		IOUtils.copyBytes(date, writer, 4096, true);
@@ -155,7 +158,7 @@ public class FeedEvictorTest {
 	public void testEviction3() throws Exception {
 		try {
 			Configuration conf = cluster.getConf();
-			FileSystem fs = FileSystem.get(conf);
+			FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 			fs.delete(new Path("/"), true);
 			stream.clear();
 
@@ -185,7 +188,7 @@ public class FeedEvictorTest {
 	public void testEviction4() throws Exception {
 		try {
 			Configuration conf = cluster.getConf();
-			FileSystem fs = FileSystem.get(conf);
+			FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 			fs.delete(new Path("/"), true);
 			stream.clear();
 
@@ -222,7 +225,7 @@ public class FeedEvictorTest {
 
 	private Pair<List<String>, List<String>> createTestData() throws Exception {
 		Configuration conf = cluster.getConf();
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 
 		List<String> outOfRange = new ArrayList<String>();
 		List<String> inRange = new ArrayList<String>();
@@ -246,7 +249,7 @@ public class FeedEvictorTest {
 					throws Exception {
 
 		Configuration conf = cluster.getConf();
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 
 		List<String> outOfRange = new ArrayList<String>();
 		List<String> inRange = new ArrayList<String>();

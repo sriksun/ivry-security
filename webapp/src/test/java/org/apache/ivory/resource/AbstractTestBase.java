@@ -39,6 +39,8 @@ import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.SchemaHelper;
 import org.apache.ivory.entity.v0.cluster.Cluster;
 import org.apache.ivory.entity.v0.feed.Feed;
+import org.apache.ivory.hadoop.HadoopClientFactory;
+import org.apache.ivory.security.CurrentUser;
 import org.apache.ivory.util.EmbeddedServer;
 import org.apache.ivory.util.StartupProperties;
 import org.apache.ivory.workflow.engine.OozieClientFactory;
@@ -172,6 +174,7 @@ public class AbstractTestBase {
 
     @BeforeClass
     public void configure() throws Exception {
+        CurrentUser.authenticate(System.getProperty("user.name"));
         StartupProperties.get().setProperty(
                 "application.services",
                 StartupProperties.get().getProperty("application.services")
@@ -208,7 +211,8 @@ public class AbstractTestBase {
         cleanupStore();
 
         // setup dependent workflow and lipath in hdfs
-        FileSystem fs = FileSystem.get(this.cluster.getConf());
+        FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                this.cluster.getConf());
         fs.mkdirs(new Path("/ivory"), new FsPermission((short) 511));
 
         Path wfParent = new Path("/ivory/test");

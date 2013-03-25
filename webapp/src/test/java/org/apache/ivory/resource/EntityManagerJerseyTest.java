@@ -45,6 +45,7 @@ import org.apache.ivory.entity.v0.process.Input;
 import org.apache.ivory.entity.v0.process.Process;
 import org.apache.ivory.entity.v0.process.Property;
 import org.apache.ivory.entity.v0.process.Validity;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.util.BuildProperties;
 import org.apache.ivory.util.DeploymentProperties;
 import org.apache.oozie.client.BundleJob;
@@ -436,7 +437,7 @@ public class EntityManagerJerseyTest extends AbstractTestBase{
         List<Path> list = new ArrayList<Path>();
         Configuration conf = new Configuration();
         conf.set("fs.default.name", "hdfs://localhost:8020");
-        FileSystem fs = FileSystem.get(conf);
+        FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
         fs.mkdirs(new Path("/user/guest"));
         fs.setOwner(new Path("/user/guest"), REMOTE_USER, "users");
 

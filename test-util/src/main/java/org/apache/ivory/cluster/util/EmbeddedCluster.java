@@ -41,13 +41,14 @@ public class EmbeddedCluster {
 
     private static Logger LOG = Logger.getLogger(EmbeddedCluster.class);
 
-    protected EmbeddedCluster() {
-    }
-
-    private Configuration conf = new Configuration();
+    private Configuration conf;
     private MiniDFSCluster dfsCluster;
     private MiniMRCluster mrCluster;
     protected Cluster clusterEntity;
+
+    protected EmbeddedCluster() {
+        conf = new Configuration();
+    }
 
     public Configuration getConf() {
         return conf;
@@ -84,18 +85,10 @@ public class EmbeddedCluster {
         } else {
             System.setProperty("test.build.data", "webapp/target/" + name + "/data");
         }
-        String user = System.getProperty("user.name");
-        cluster.conf.set("hadoop.log.dir", "/tmp");
-        cluster.conf.set("hadoop.proxyuser.oozie.groups", "staff");
-        cluster.conf.set("hadoop.proxyuser.oozie.hosts", "127.0.0.1");
-/*
-        cluster.conf.set("hadoop.proxyuser.seetharam.groups", "*");
-        cluster.conf.set("hadoop.proxyuser.seetharam.hosts", "127.0.0.1");
-*/
-        cluster.conf.set("hadoop.proxyuser.hdfs.groups", "*");
-        cluster.conf.set("hadoop.proxyuser.hdfs.hosts", "127.0.0.1");
-        cluster.conf.set("mapreduce.jobtracker.kerberos.principal", "");
-        cluster.conf.set("dfs.namenode.kerberos.principal", "");
+
+        String ivoryUser = initConf(cluster.conf);
+        initUGI(ivoryUser);
+
         cluster.dfsCluster = new MiniDFSCluster(cluster.conf, 1, true, null);
         String hdfsUrl = cluster.conf.get("fs.default.name");
         LOG.info("Cluster Namenode = " + hdfsUrl);
@@ -104,12 +97,14 @@ public class EmbeddedCluster {
             System.setProperty("org.apache.hadoop.mapred.TaskTracker", "/tmp");
             cluster.conf.set("org.apache.hadoop.mapred.TaskTracker", "/tmp");
             cluster.conf.set("org.apache.hadoop.mapred.TaskTracker", "/tmp");
-            cluster.conf.set("mapreduce.jobtracker.staging.root.dir", "/user");
-            Path path = new Path("/tmp/hadoop-" + user, "mapred");
-            FileSystem.get(cluster.conf).mkdirs(path);
-            FileSystem.get(cluster.conf).setPermission(path, new FsPermission((short)511));
-            cluster.mrCluster = new MiniMRCluster(1,
-                    hdfsUrl, 1);
+            cluster.conf.set("mapreduce.jobtracker.staging.root.dir", "/ivoryUser");
+
+            Path path = new Path("/tmp/hadoop-" + ivoryUser, "mapred");
+            FileSystem fs = getFileSystem(cluster.conf);
+            fs.mkdirs(path);
+            fs.setPermission(path, new FsPermission((short) 511));
+
+            cluster.mrCluster = new MiniMRCluster(1, hdfsUrl, 1);
             Configuration mrConf = cluster.mrCluster.createJobConf();
             cluster.conf.set("mapred.job.tracker",
                     mrConf.get("mapred.job.tracker"));
@@ -120,6 +115,106 @@ public class EmbeddedCluster {
         }
         cluster.buildClusterObject(name);
         return cluster;
+    }
+
+    private static FileSystem getFileSystem(final Configuration conf)
+            throws IOException {
+        UserGroupInformation proxy =
+                UserGroupInformation.createProxyUser("oozie",
+                        UserGroupInformation.createRemoteUser("seetharam"));
+
+        FileSystem fs;
+        try {
+            fs = proxy.doAs(new PrivilegedExceptionAction<FileSystem>() {
+                @Override
+                public FileSystem run() throws Exception {
+                    return FileSystem.get(conf);
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        }
+
+        return fs;
+    }
+
+    public static final String TEST_IVORY_USER_PROP = "ivory.test.user";
+    public static final String TEST_IVORY_PROXY_USER_PROP =
+            "ivory.test.proxy.user";
+    public static final String TEST_GROUP_PROP = "ivory.test.group";
+
+    public static String initConf(Configuration conf) {
+//        String user = System.getProperty("user.name");
+        conf.set("hadoop.log.dir", "/tmp");
+        conf.set("hadoop.proxyuser.oozie.groups", "staff");
+        conf.set("hadoop.proxyuser.oozie.hosts", "127.0.0.1");
+
+        conf.set("hadoop.proxyuser.seetharam.groups", "*");
+        conf.set("hadoop.proxyuser.seetharam.hosts", "127.0.0.1");
+
+        conf.set("hadoop.proxyuser.hdfs.groups", "*");
+        conf.set("hadoop.proxyuser.hdfs.hosts", "127.0.0.1");
+        conf.set("mapreduce.jobtracker.kerberos.principal", "");
+        conf.set("dfs.namenode.kerberos.principal", "");
+
+        String ivoryUser = getIvoryUser();
+
+        conf.set("dfs.block.access.token.enable", "false");
+        conf.set("dfs.permissions", "true");
+        conf.set("hadoop.security.authentication", "simple");
+
+        conf.set("hadoop.proxyuser." + ivoryUser + ".hosts", "*");
+        conf.set("hadoop.proxyuser." + ivoryUser + ".groups", getTestGroup());
+
+        return ivoryUser;
+    }
+
+    public static void initUGI(String ivoryUser) {
+        System.out.println("ivoryUser = " + ivoryUser);
+        String [] userGroups = new String[] { getTestGroup() };
+        System.out.println("userGroups = " + userGroups);
+        UserGroupInformation realUser = UserGroupInformation
+                .createUserForTesting(ivoryUser, userGroups);
+        System.out.println("realUser = " + realUser);
+        UserGroupInformation proxyUser = UserGroupInformation
+        .createProxyUserForTesting(getIvoryProxyUser(), realUser, userGroups);
+        System.out.println("getIvoryProxyUser() = " + getIvoryProxyUser());
+        System.out.println("proxyUser UGI = " + proxyUser);
+    }
+
+    protected void setUpUGI() throws Exception {
+        String ivoryUser = getIvoryUser();
+
+        conf = new Configuration();
+        conf.set("dfs.block.access.token.enable", "false");
+        conf.set("dfs.permissions", "true");
+        conf.set("hadoop.security.authentication", "simple");
+
+        conf.set("hadoop.proxyuser." + ivoryUser + ".hosts", "*");
+        conf.set("hadoop.proxyuser." + ivoryUser + ".groups", getTestGroup());
+
+        UserGroupInformation.setConfiguration(conf);
+        String [] userGroups = new String[] { getTestGroup() };
+        UserGroupInformation realUser = UserGroupInformation
+                .createUserForTesting(ivoryUser, userGroups);
+        UserGroupInformation.createProxyUserForTesting(
+                getIvoryProxyUser(), realUser, userGroups);
+        UserGroupInformation.createUserForTesting("testuser1", userGroups);
+    }
+
+    public static String getTestGroup() {
+        return System.getProperty(TEST_GROUP_PROP, "testgroup");
+    }
+
+    public static String getIvoryUser() {
+        return System.getProperty(TEST_IVORY_USER_PROP,
+                // System.getProperty("user.name")
+                "testuser");
+    }
+
+    public static String getIvoryProxyUser() {
+        return System.getProperty(TEST_IVORY_PROXY_USER_PROP,
+                System.getProperty("user.name"));
     }
 
     private void buildClusterObject(String name) {

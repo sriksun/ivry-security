@@ -31,6 +31,7 @@ import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.cluster.Cluster;
 import org.apache.ivory.entity.v0.cluster.Interfacetype;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.util.DeploymentUtil;
 import org.apache.ivory.util.StartupProperties;
 import org.apache.log4j.Logger;
@@ -78,7 +79,7 @@ public class SharedLibraryHostingService implements ConfigurationChangeListener 
         conf.setInt("ipc.client.connect.max.retries", 10);
 		FileSystem fs = null;
 		try {
-			fs = FileSystem.get(conf);
+			fs = HadoopClientFactory.get().createFileSystem(conf);
 		} catch (Exception e) {
 			throw new IvoryException("Unable to connect to HDFS: "
 					+ ClusterHelper.getStorageUrl(cluster));

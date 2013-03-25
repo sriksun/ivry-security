@@ -31,13 +31,19 @@ import org.apache.ivory.entity.v0.process.Output;
 import org.apache.ivory.entity.v0.process.Outputs;
 import org.apache.ivory.entity.v0.process.Process;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class EntityGraphTest extends AbstractTestBase{
+public class EntityGraphTest extends AbstractTestBase {
 
-    private ConfigurationStore store = ConfigurationStore.get();
+    private ConfigurationStore store;
+    private EntityGraph graph;
 
-    private EntityGraph graph = EntityGraph.get();
+    @BeforeClass
+    public void setUp() throws Exception {
+        store = ConfigurationStore.get();
+        graph = EntityGraph.get();
+    }
 
     @Test
     public void testOnAdd() throws Exception {

@@ -32,7 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OozieClientFactory {
 
-	private static final Logger LOG = Logger.getLogger(OozieClientFactory.class);
+	private static final Logger LOG =
+            Logger.getLogger(OozieClientFactory.class);
 
     private static final ConcurrentHashMap<String, OozieClient> cache =
             new ConcurrentHashMap<String, OozieClient>();
@@ -43,6 +44,11 @@ public class OozieClientFactory {
             throws IvoryException {
         assert cluster != null : "Cluster cant be null";
         String oozieUrl = ClusterHelper.getOozieUrl(cluster);
+        return getClient(oozieUrl);
+    }
+
+    public synchronized static OozieClient getClient(String oozieUrl)
+            throws IvoryException {
         if (!cache.containsKey(oozieUrl)) {
             OozieClient ref = getClientRef(oozieUrl);
             LOG.info("Caching Oozie client object for " + oozieUrl);
@@ -54,8 +60,10 @@ public class OozieClientFactory {
     }
 
     public static OozieClient get(String cluster) throws IvoryException {
-        return get((Cluster) ConfigurationStore.get().get(EntityType.CLUSTER, cluster));
+        return get((Cluster) ConfigurationStore.get().get(
+                EntityType.CLUSTER, cluster));
     }
+
     private static OozieClient getClientRef(String oozieUrl)
             throws IvoryException {
         if (LOCAL_OOZIE.equals(oozieUrl)) {

@@ -42,6 +42,7 @@ import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.ivory.entity.v0.EntityType;
+import org.apache.ivory.workflow.engine.OozieClientFactory;
 import org.apache.log4j.Logger;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
@@ -70,8 +71,8 @@ public class LogMover extends Configured implements Tool {
 		try {
 			ARGS args = new ARGS();
 			setupArgs(arguments, args);
-			OozieClient client = new OozieClient(args.oozieUrl);
-			WorkflowJob jobInfo = null;
+			OozieClient client = OozieClientFactory.getClient(args.oozieUrl);
+			WorkflowJob jobInfo;
 			try {
 				jobInfo = client.getJobInfo(args.subflowId);
 			} catch (OozieClientException e) {

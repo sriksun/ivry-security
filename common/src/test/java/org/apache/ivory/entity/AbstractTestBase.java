@@ -25,11 +25,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.ivory.IvoryException;
+import org.apache.ivory.cluster.util.EmbeddedCluster;
+import org.apache.ivory.cluster.util.IvoryTestBase;
 import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityType;
@@ -38,15 +39,16 @@ import org.apache.ivory.entity.v0.cluster.Interface;
 import org.apache.ivory.entity.v0.cluster.Interfacetype;
 import org.apache.ivory.entity.v0.feed.Feed;
 import org.apache.ivory.entity.v0.process.Process;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.util.StartupProperties;
 import org.testng.annotations.BeforeClass;
 
-public class AbstractTestBase {
+public class AbstractTestBase extends IvoryTestBase {
     protected static final String PROCESS_XML = "/config/process/process-0.1.xml";
     protected static final String FEED_XML = "/config/feed/feed-0.1.xml";
     protected static final String CLUSTER_XML = "/config/cluster/cluster-0.1.xml";
     protected MiniDFSCluster dfsCluster;
-    protected Configuration conf= new Configuration();
+    protected EmbeddedCluster embeddedCluster;
 
     @BeforeClass
     public void initConfigStore() throws Exception {
@@ -74,7 +76,8 @@ public class AbstractTestBase {
 		case CLUSTER:
                 Cluster cluster = (Cluster) unmarshaller.unmarshal(this.getClass().getResource(CLUSTER_XML));
                 cluster.setName(name);
-                ClusterHelper.getInterface(cluster, Interfacetype.WRITE).setEndpoint(conf.get("fs.default.name"));
+                ClusterHelper.getInterface(cluster, Interfacetype.WRITE)
+                        .setEndpoint(getConf().get("fs.default.name"));
                 store.publish(type, cluster);
                 break;
 
@@ -87,7 +90,11 @@ public class AbstractTestBase {
             case PROCESS:
                 Process process = (Process) unmarshaller.unmarshal(this.getClass().getResource(PROCESS_XML));
                 process.setName(name);
-                FileSystem fs =dfsCluster.getFileSystem();
+                FileSystem fs = dfsCluster.getFileSystem();
+                /*
+                FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                        embeddedCluster.getConf());
+                */
                 fs.mkdirs(new Path(process.getWorkflow().getPath()));
                 if (!fs.exists(new Path(process.getWorkflow()+"/lib"))) {
                 	fs.mkdirs(new Path(process.getWorkflow()+"/lib"));

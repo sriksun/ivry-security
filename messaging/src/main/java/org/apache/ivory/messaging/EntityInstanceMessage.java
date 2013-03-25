@@ -33,6 +33,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.ivory.IvoryException;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.log4j.Logger;
 
 /**
@@ -137,9 +139,12 @@ public class EntityInstanceMessage {
 		} catch (IOException e) {
 			LOG.error("Error getting instance paths: ", e);
 			throw new RuntimeException(e);
-		}
+		} catch (IvoryException e) {
+            LOG.error("Error getting instance paths: ", e);
+            throw new RuntimeException(e);
+        }
 
-		EntityInstanceMessage[] messages = new EntityInstanceMessage[feedPaths.length];
+        EntityInstanceMessage[] messages = new EntityInstanceMessage[feedPaths.length];
 		for (int i = 0; i < feedPaths.length; i++) {
 			EntityInstanceMessage message = new EntityInstanceMessage();
 			setDefaultValues(cmd, message);
@@ -177,7 +182,8 @@ public class EntityInstanceMessage {
 		return feedNameStr.split(",");
 	}
 
-	private static String[] getFeedPaths(CommandLine cmd) throws IOException {
+	private static String[] getFeedPaths(CommandLine cmd)
+            throws IOException, IvoryException {
 		String topicName = cmd.getOptionValue(ARG.topicName.getArgName());
 		String operation = cmd.getOptionValue(ARG.operation.getArgName());
 
@@ -197,7 +203,8 @@ public class EntityInstanceMessage {
 		}
 		//else case of feed retention
 		Path logFile = new Path(cmd.getOptionValue(ARG.logFile.getArgName()));
-		FileSystem fs = FileSystem.get(logFile.toUri(), new Configuration());
+        FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                logFile.toUri(), new Configuration());
 		ByteArrayOutputStream writer = new ByteArrayOutputStream();
 		InputStream instance = fs.open(logFile);
 		IOUtils.copyBytes(instance, writer, 4096, true);

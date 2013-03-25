@@ -21,8 +21,11 @@ package org.apache.ivory.entity.store;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.ivory.IvoryException;
+import org.apache.ivory.cluster.util.IvoryTestBase;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.process.Process;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.util.StartupProperties;
 import org.apache.log4j.Logger;
 import org.testng.Assert;
@@ -32,13 +35,25 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-public class ConfigurationStoreTest {
+public class ConfigurationStoreTest extends IvoryTestBase {
 
   private static Logger LOG = Logger.getLogger(ConfigurationStoreTest.class);
 
-  private ConfigurationStore store = ConfigurationStore.get();
+  private ConfigurationStore store;
 
-  @Test
+  @BeforeSuite
+  @AfterSuite
+  public void cleanup() throws IOException, IvoryException {
+    store = ConfigurationStore.get();
+    Path path = new Path(
+        StartupProperties.get().getProperty("config.store.uri"));
+    System.out.println("path = " + path);
+    FileSystem fs = FileSystem.get(path.toUri(), getConf());
+    fs.delete(path, true);
+    LOG.info("Cleaned up " + path);
+  }
+
+    @Test
   public void testPublish() throws Exception {
     Process process = new Process();
     process.setName("hello");
@@ -68,15 +83,5 @@ public class ConfigurationStoreTest {
   @Test
   public void testSearch() throws Exception {
     //TODO
-  }
-
-  @BeforeSuite
-  @AfterSuite
-  public void cleanup() throws IOException {
-    Path path = new Path(StartupProperties.get().
-        getProperty("config.store.uri"));
-    FileSystem fs = FileSystem.get(path.toUri(), new Configuration());
-    fs.delete(path, true);
-    LOG.info("Cleaned up " + path);
   }
 }

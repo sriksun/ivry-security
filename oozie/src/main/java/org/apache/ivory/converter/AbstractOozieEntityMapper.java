@@ -45,6 +45,7 @@ import org.apache.ivory.entity.ExternalId;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.cluster.Cluster;
 import org.apache.ivory.entity.v0.cluster.Property;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.messaging.EntityInstanceMessage.ARG;
 import org.apache.ivory.oozie.bundle.BUNDLEAPP;
 import org.apache.ivory.oozie.bundle.COORDINATOR;
@@ -144,7 +145,8 @@ public abstract class AbstractOozieEntityMapper<T extends Entity> {
     private void copySharedLibs(Cluster cluster, Path coordPath) throws IvoryException {
         try {
             Path libPath = new Path(coordPath, "lib");
-            FileSystem fs = FileSystem.get(ClusterHelper.getConfiguration(cluster));
+            FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                    ClusterHelper.getConfiguration(cluster));
             if (!fs.exists(libPath))
                 fs.mkdirs(libPath);
 
