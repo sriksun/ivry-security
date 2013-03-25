@@ -40,6 +40,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.ivory.IvoryException;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityType;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.service.ConfigurationChangeListener;
 import org.apache.ivory.service.IvoryService;
 import org.apache.ivory.util.ReflectionUtils;
@@ -88,7 +89,8 @@ public class ConfigurationStore implements IvoryService {
         String uri = StartupProperties.get().getProperty("config.store.uri");
         storePath = new Path(uri);
         try {
-            fs = FileSystem.get(storePath.toUri(), new Configuration());
+            fs = HadoopClientFactory.get().createFileSystem(
+                    storePath.toUri(), new Configuration());
         } catch (Exception e) {
             throw new RuntimeException("Unable to bring up config store", e);
         }

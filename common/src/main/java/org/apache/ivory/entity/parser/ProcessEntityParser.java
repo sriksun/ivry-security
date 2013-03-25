@@ -43,6 +43,7 @@ import org.apache.ivory.entity.v0.process.LateInput;
 import org.apache.ivory.entity.v0.process.Output;
 import org.apache.ivory.entity.v0.process.Outputs;
 import org.apache.ivory.entity.v0.process.Process;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 
 /**
  * Concrete Parser which has XML parsing and validation logic for Process XML.
@@ -105,7 +106,8 @@ public class ProcessEntityParser extends EntityParser<Process> {
         try {
             Configuration configuration = new Configuration();
             configuration.set("fs.default.name", nameNode);
-            FileSystem fs = FileSystem.get(configuration);
+            FileSystem fs =
+                    HadoopClientFactory.get().createFileSystem(configuration);
             if (!fs.exists(new Path(workflowPath))) {
                 throw new ValidationException("Workflow path: " + workflowPath + " does not exists in HDFS: " + nameNode);
             }

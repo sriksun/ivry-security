@@ -31,6 +31,7 @@ import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.cluster.Cluster;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.resource.InstancesResult.Instance;
 import org.apache.ivory.resource.InstancesResult.InstanceAction;
 import org.apache.log4j.Logger;
@@ -47,9 +48,9 @@ public final class LogProvider {
 				EntityType.CLUSTER, instance.cluster);
 		String resolvedRunId = "-";
 		try {
-			FileSystem fs = FileSystem.get(
-					new Path(ClusterHelper.getStorageUrl(clusterObj)).toUri(),
-					new Configuration());
+			FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                    new Path(ClusterHelper.getStorageUrl(clusterObj)).toUri(),
+                    new Configuration());
 			resolvedRunId = getResolvedRunId(fs, clusterObj, entity, instance,
 					runId);
 			// if runId param is not resolved, i.e job is killed or not started

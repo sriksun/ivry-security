@@ -26,14 +26,17 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.ivory.IvoryException;
 import org.apache.ivory.cluster.util.EmbeddedCluster;
+import org.apache.ivory.cluster.util.IvoryTestBase;
 import org.apache.ivory.entity.ClusterHelper;
 import org.apache.ivory.entity.EntityUtil;
 import org.apache.ivory.entity.parser.ProcessEntityParser;
 import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.process.Process;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.security.CurrentUser;
 import org.apache.ivory.service.SharedLibraryHostingService;
+import org.apache.ivory.workflow.engine.OozieClientFactory;
 import org.apache.ivory.workflow.engine.OozieWorkflowEngine;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.WorkflowJob;
@@ -45,10 +48,11 @@ import org.testng.annotations.Test;
  * Requires Oozie to be running on localhost
  * 
  */
-public class LogMoverTest {
+public class LogMoverTest extends IvoryTestBase {
 
-	private static final ConfigurationStore store = ConfigurationStore.get();
-	private static EmbeddedCluster testCluster = null;
+    private ConfigurationStore store;
+
+    private static EmbeddedCluster testCluster = null;
 	private static Process testProcess = null;
 	private static String processName = "testProcess"
 			+ System.currentTimeMillis();
@@ -56,12 +60,15 @@ public class LogMoverTest {
 
 	@BeforeClass
 	public void setup() throws Exception {
+//        CurrentUser.authenticate(System.getProperty("user.name"));
+        store = ConfigurationStore.get();
+
 		cleanupStore();
 		testCluster = EmbeddedCluster.newCluster("testCluster", true);
 		store.publish(EntityType.CLUSTER, testCluster.getCluster());
         SharedLibraryHostingService listener = new SharedLibraryHostingService();
         listener.onAdd(testCluster.getCluster());
-		fs = FileSystem.get(testCluster.getConf());
+		fs = HadoopClientFactory.get().createFileSystem(testCluster.getConf());
 		fs.mkdirs(new Path("/workflow/lib"));
 
 		fs.copyFromLocalFile(
@@ -99,8 +106,8 @@ public class LogMoverTest {
 		OozieWorkflowEngine engine = new OozieWorkflowEngine();
 		engine.schedule(testProcess);
 
-		OozieClient client = new OozieClient(
-				ClusterHelper.getOozieUrl(testCluster.getCluster()));
+		OozieClient client = OozieClientFactory.getClient(
+                ClusterHelper.getOozieUrl(testCluster.getCluster()));
 		List<WorkflowJob> jobs;
 		while (true) {
 			jobs = client.getJobsInfo(OozieClient.FILTER_NAME + "="

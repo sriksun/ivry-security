@@ -25,6 +25,7 @@ import org.apache.ivory.entity.ClusterHelper;
 import org.apache.ivory.entity.store.StoreAccessException;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.cluster.Cluster;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.log4j.Logger;
 
 public class ClusterEntityParser extends EntityParser<Cluster> {
@@ -47,7 +48,7 @@ public class ClusterEntityParser extends EntityParser<Cluster> {
 			Configuration conf = new Configuration();
 			conf.set("fs.default.name", ClusterHelper.getStorageUrl(cluster));
 			conf.setInt("ipc.client.connect.max.retries", 10);
-			FileSystem.get(conf);
+            HadoopClientFactory.get().createFileSystem(conf);
 		} catch (Exception e) {
 			throw new ValidationException("Invalid HDFS server or port:"
 					+ ClusterHelper.getStorageUrl(cluster), e);

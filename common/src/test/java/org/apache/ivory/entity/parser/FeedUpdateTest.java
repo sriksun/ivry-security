@@ -20,6 +20,7 @@ package org.apache.ivory.entity.parser;
 
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.ivory.IvoryException;
+import org.apache.ivory.cluster.util.EmbeddedCluster;
 import org.apache.ivory.entity.AbstractTestBase;
 import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.EntityType;
@@ -41,14 +42,16 @@ public class FeedUpdateTest extends AbstractTestBase {
 
     @BeforeClass
     public void init() throws Exception {
-        conf.set("hadoop.log.dir", "/tmp");
-        this.dfsCluster = new MiniDFSCluster(conf, 1, true, null);
+        getConf().set("hadoop.log.dir", "/tmp");
+        this.dfsCluster = new MiniDFSCluster(getConf(), 1, true, null);
+//        embeddedCluster = EmbeddedCluster.newCluster("FUD", false);
         setup();
     }
 
 	@AfterClass
 	public void tearDown() {
 		this.dfsCluster.shutdown();
+//        embeddedCluster.shutdown();
 	}
 
     @Override

@@ -32,6 +32,7 @@ import org.apache.ivory.entity.EntityUtil;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.SchemaHelper;
 import org.apache.ivory.entity.v0.process.LateInput;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.latedata.LateDataHandler;
 import org.apache.ivory.rerun.event.LaterunEvent;
 import org.apache.ivory.rerun.queue.DelayedQueue;
@@ -110,7 +111,7 @@ public class LateRerunConsumer<T extends LateRerunHandler<DelayedQueue<LaterunEv
 				message.getWfId());
 		Path lateLogPath = handler.getLateLogPath(logDir, nominalTime,
 				srcClusterName);
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
 		if (!fs.exists(lateLogPath)) {
 			LOG.warn("Late log file:" + lateLogPath + " not found:");
 			return "";

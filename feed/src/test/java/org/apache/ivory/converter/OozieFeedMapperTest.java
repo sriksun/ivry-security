@@ -30,6 +30,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.ivory.IvoryException;
+import org.apache.ivory.cluster.util.IvoryTestBase;
 import org.apache.ivory.entity.ClusterHelper;
 import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.Entity;
@@ -44,10 +45,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class OozieFeedMapperTest {
+public class OozieFeedMapperTest extends IvoryTestBase {
 	private MiniDFSCluster srcMiniDFS;
 	private MiniDFSCluster trgMiniDFS;
-	ConfigurationStore store = ConfigurationStore.get();
+	private ConfigurationStore store;
 	Cluster srcCluster;
 	Cluster trgCluster;
 	Feed feed;
@@ -58,7 +59,9 @@ public class OozieFeedMapperTest {
 
 	@BeforeClass
 	public void setUpDFS() throws Exception {
-		Configuration conf = new Configuration();
+        store = ConfigurationStore.get();
+
+        Configuration conf = new Configuration();
 		System.setProperty("test.build.data", "target/" + "cluster1" + "/data");
 		srcMiniDFS = new MiniDFSCluster(conf, 1, true, null);
 		String srcHdfsUrl = conf.get("fs.default.name");

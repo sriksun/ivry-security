@@ -27,6 +27,7 @@ import org.apache.ivory.entity.EntityUtil;
 import org.apache.ivory.entity.v0.Entity;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.cluster.Cluster;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.log4j.Logger;
 
 public class OozieHouseKeepingService implements WorkflowEngineActionListener {
@@ -53,7 +54,7 @@ public class OozieHouseKeepingService implements WorkflowEngineActionListener {
             LOG.info("Deleting entity path " + entityPath + " on cluster " + clusterName);
             
             Configuration conf = ClusterHelper.getConfiguration(cluster);
-            FileSystem fs = FileSystem.get(conf);
+            FileSystem fs = HadoopClientFactory.get().createFileSystem(conf);
             if (fs.exists(entityPath) && !fs.delete(entityPath, true)) {
                 throw new IvoryException("Unable to cleanup entity path: " + entityPath);
             }

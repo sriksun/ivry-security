@@ -32,21 +32,21 @@ import org.apache.ivory.entity.v0.feed.Feed;
 import org.apache.ivory.entity.v0.feed.Location;
 import org.apache.ivory.entity.v0.feed.LocationType;
 import org.apache.ivory.entity.v0.feed.Locations;
+import org.apache.ivory.security.CurrentUser;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class FeedGroupMapTest extends AbstractTestBase{
-	private ConfigurationStore store = ConfigurationStore.get();
+public class FeedGroupMapTest extends AbstractTestBase {
+	private ConfigurationStore store;
 	private static Cluster cluster;
 
 	@BeforeClass
 	public void setUp() throws Exception {
-		cluster = (Cluster) EntityType.CLUSTER
-				.getUnmarshaller()
-				.unmarshal(
-						FeedGroupMapTest.class
-								.getResourceAsStream("/config/cluster/cluster-0.1.xml"));
+        this.store = ConfigurationStore.get();
+		cluster = (Cluster) EntityType.CLUSTER.getUnmarshaller().unmarshal(
+                FeedGroupMapTest.class.
+                     getResourceAsStream("/config/cluster/cluster-0.1.xml"));
 	}
 
 	@BeforeMethod

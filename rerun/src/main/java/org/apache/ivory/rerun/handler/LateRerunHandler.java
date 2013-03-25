@@ -37,6 +37,7 @@ import org.apache.ivory.entity.v0.process.LateProcess;
 import org.apache.ivory.entity.v0.process.PolicyType;
 import org.apache.ivory.entity.v0.process.Process;
 import org.apache.ivory.expression.ExpressionHelper;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.rerun.event.LaterunEvent;
 import org.apache.ivory.rerun.policy.AbstractRerunPolicy;
 import org.apache.ivory.rerun.policy.RerunPolicyFactory;
@@ -77,9 +78,9 @@ public class LateRerunHandler<M extends DelayedQueue<LaterunEvent>> extends
 				Path lateLogPath = this.getLateLogPath(logDir,
 						EntityUtil.UTCtoURIDate(nominalTime), srcClusterName);
 				LOG.info("Going to delete path:" +lateLogPath);
-				FileSystem fs = FileSystem.get(getConfiguration(cluster,
-						wfId));
-				if (fs.exists(lateLogPath)) {
+				FileSystem fs = HadoopClientFactory.get().createFileSystem(
+                        getConfiguration(cluster, wfId));
+                if (fs.exists(lateLogPath)) {
 					boolean deleted = fs.delete(lateLogPath, true);
 					if (deleted == true) {
 						LOG.info("Successfully deleted late file path:"

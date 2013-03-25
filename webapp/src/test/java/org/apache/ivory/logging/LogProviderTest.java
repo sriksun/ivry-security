@@ -23,21 +23,24 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.ivory.IvoryException;
 import org.apache.ivory.cluster.util.EmbeddedCluster;
+import org.apache.ivory.cluster.util.IvoryTestBase;
 import org.apache.ivory.entity.parser.ProcessEntityParser;
 import org.apache.ivory.entity.store.ConfigurationStore;
 import org.apache.ivory.entity.v0.EntityType;
 import org.apache.ivory.entity.v0.process.Process;
+import org.apache.ivory.hadoop.HadoopClientFactory;
 import org.apache.ivory.resource.InstancesResult.Instance;
 import org.apache.ivory.resource.InstancesResult.InstanceAction;
 import org.apache.ivory.resource.InstancesResult.WorkflowStatus;
+import org.apache.ivory.security.CurrentUser;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class LogProviderTest {
+public class LogProviderTest extends IvoryTestBase {
 
-	private static final ConfigurationStore store = ConfigurationStore.get();
+	private ConfigurationStore store;
 	private static EmbeddedCluster testCluster = null;
 	private static Process testProcess = null;
 	private static String processName = "testProcess";
@@ -46,10 +49,12 @@ public class LogProviderTest {
 
 	@BeforeClass
 	public void setup() throws Exception {
+//        CurrentUser.authenticate(System.getProperty("user.name"));
+        store = ConfigurationStore.get();
 		testCluster = EmbeddedCluster.newCluster("testCluster", false);
 		cleanupStore();
 		store.publish(EntityType.CLUSTER, testCluster.getCluster());
-		fs = FileSystem.get(testCluster.getConf());
+		fs = HadoopClientFactory.get().createFileSystem(testCluster.getConf());
 		Path instanceLogPath = new Path(
 				"/workflow/staging/ivory/workflows/process/" + processName
 						+ "/logs/job-2010-01-01-01-00/000");

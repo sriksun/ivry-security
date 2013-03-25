@@ -96,3 +96,11 @@ the data on HDFS.
 Verification:
 Verify in oozie console for a replication workflow on target cluster
 and retention workflows on both source and target clusters.
+
+
+User Actions
+User Workflow – atomic
+MessageProviders
+
+Stomp api in perl for activemq
+
